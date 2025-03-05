@@ -5,7 +5,7 @@ metadata:
   labels:
     app: book-app
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: book-app
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: book-app-container
-        image: chavanakshay/book-management # Use your private repository name
+        image: pankajkar123/bookmanagement-app-image # Use your private repository name
         ports:
         - containerPort: 8081
       imagePullSecrets:
@@ -38,4 +38,4 @@ spec:
     - protocol: TCP
       port: 8081       # Port for external access
       targetPort: 8081 # Port on the container
-      nodePort: 30081  # Port on the node (only for NodePort type)
+      nodePort: 30080  # Port on the node (only for NodePort type)
