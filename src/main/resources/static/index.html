@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Management</title>
+    <!-- Bootstrap CSS Link -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #343a40;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+        .btn-custom {
+            border-radius: 20px;
+            padding: 10px 20px;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        thead th {
+            background-color: #007bff;
+            color: #fff;
+            text-align: center;
+            border: none;
+        }
+
+        tbody tr {
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        tbody td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .btn-sm {
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Book Management System</h1>
+        </div>
+
+        <!-- Form to Add or Update a Book -->
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title text-center">Add Book</h4>
+                <form id="bookForm">
+                    <div class="form-group">
+                        <label for="bookTitle">Title:</label>
+                        <input type="text" class="form-control" id="bookTitle" placeholder="Enter Book Title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookAuthor">Author:</label>
+                        <input type="text" class="form-control" id="bookAuthor" placeholder="Enter Author Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookPrice">Price:</label>
+                        <input type="number" class="form-control" id="bookPrice" placeholder="Enter Book Price" required>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-custom btn-block" onclick="addOrUpdateBook()">Save Book</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table to Display Books -->
+        <div class="card mt-5">
+            <div class="card-body">
+                <h4 class="card-title text-center">Books List</h4>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        const apiUrl = "http://localhost:8082/api/books";
+        let currentEditingBookId = null;
+
+        // Fetch and display books
+        function fetchBooks() {
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(books => {
+                    const tableBody = document.querySelector("#bookTable");
+                    tableBody.innerHTML = "";
+                    books.forEach(book => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${book.title}</td>
+                            <td>${book.author}</td>
+                            <td>${book.price}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteBook(${book.id})">Delete</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                });
+        }
+
+        // Add or Update a book
+        function addOrUpdateBook() {
+            const title = document.querySelector("#bookTitle").value;
+            const author = document.querySelector("#bookAuthor").value;
+            const price = document.querySelector("#bookPrice").value;
+
+            const bookData = { title, author, price };
+
+            if (currentEditingBookId) {
+                // Update book
+                fetch(`${apiUrl}/${currentEditingBookId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(bookData)
+                }).then(() => {
+                    fetchBooks(); // Reload books
+                    resetForm();
+                });
+            } else {
+                // Add new book
+                fetch(apiUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(bookData)
+                }).then(() => {
+                    fetchBooks(); // Reload books
+                    resetForm();
+                });
+            }
+        }
+
+
+        // Delete a book
+        function deleteBook(id) {
+            fetch(`${apiUrl}/${id}`, {
+                method: "DELETE"
+            }).then(() => {
+                fetchBooks(); // Reload books
+            });
+        }
+
+        // Reset the form
+        function resetForm() {
+            document.querySelector("#bookTitle").value = "";
+            document.querySelector("#bookAuthor").value = "";
+            document.querySelector("#bookPrice").value = "";
+            currentEditingBookId = null;
+        }
+
+        // Initial load of books
+        fetchBooks();
+    </script>
+</body>
+</html>
